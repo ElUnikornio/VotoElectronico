@@ -33,6 +33,7 @@ int main()
             else
             {
                 printf("Las votaciones a%cn no est%cn habilitadas\nEl administrador debe habilitarlas.", 163, 160);
+                system("PAUSE");
             }
 
             break;
