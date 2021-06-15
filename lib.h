@@ -242,7 +242,10 @@ void registrarVotante()
 
 			} while (strcmp(contra, votantes.contrasena) != 0);
 
-			printf("Contrase%ca establecida con %cxito", 164, 0233);
+			printf("Contrase%ca establecida con %cxito", 164, 130);
+			votantes.votoid = 0;
+			strcpy(votantes.nacionalidad, "MEX");
+			strcpy(votantes.antecedentes, "N");
 			fwrite(&votantes, sizeof(votantes), 1, ficheroVotantes);
 		}
 		else
@@ -265,7 +268,6 @@ void registrarVotante()
 			}
 		}
 	}
-	votantes.votoid = 0;
 	fclose(ficheroVotantes);
 }
 
@@ -282,7 +284,6 @@ int votantesRegistrados()
 		fread(&Datos, sizeof(Datos), 1, ficheroVotantes);
 	}
 	i--;
-	//fseek(ficheroVotantes, 0, SEEK_SET);
 
 	fclose(ficheroVotantes);
 	ficheroVotantes = fopen(rutaVotantes, "r");
