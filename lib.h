@@ -6,22 +6,21 @@ struct Personas
 		apellidoM[10],
 		nacionalidad[4],
 		contrasena[16],
-		voto,
 		antecedentes;
-	int edad;
+	int edad, votoid;
 };
 
 struct Administrador
 {
 	char ususario[20],
-		contrasena[10];
+		contrasena[16];
 };
 
 struct Candidato
 {
 	char partido[10],
 		nombre[35];
-	int votos;
+	int votos, votoid;
 };
 
 //  Define
@@ -30,40 +29,107 @@ struct Candidato
 #define rutaCandidato "Candidato.txt"
 
 //  prototipos de funciones
+char inicioSesion();
+char comprobacionArchivos();
 void admin(char *Votacion);
-void comprobacionArchivos();
 void registrarVotante();
 int votantesRegistrados();
 void registrarCandidato();
 
 // Funciones
-void comprobacionArchivos()
+char inicioSesion()
+{
+	struct Personas Datos;
+	char usuario[20], contra[16], val = 'n';
+	FILE *fichero = fopen(rutaVotantes, "r");
+	//system("CLS");
+	fflush(stdin);
+	printf("\nIngrese su ususario: ");
+	gets(usuario);
+	printf("\nIngrese su contrase%ca: ", 164);
+	gets(contra);
+
+	while (!feof(fichero))
+	{
+		fread(&Datos, sizeof(Datos), 1, fichero);
+		if (strcmp(Datos.nombre, usuario) == 0 && strcmp(Datos.contrasena, contra) == 0)
+		{
+			printf("\nNombre: %s", Datos.nombre);
+			printf("\nApellido Paterno: %s", Datos.apellidoP);
+			printf("\nApellido Materno: %s", Datos.apellidoM);
+			printf("\nTelefono: %s", Datos.contrasena);
+			val = 'v';
+		}
+	}
+	if (val != 'v')
+	{
+		struct Administrador Datos;
+		fichero = fopen(rutaAdmin, "r");
+		while (!feof(fichero))
+		{
+			fread(&Datos, sizeof(Datos), 1, fichero);
+			if (strcmp(Datos.ususario, usuario) == 0 && strcmp(Datos.contrasena, contra) == 0)
+			{
+				printf("\ncorroto");
+				val = 'a';
+			}
+		}
+	}
+
+	return val;
+}
+
+char comprobacionArchivos()
 {
 	FILE *f;
+	char cod = 'n';
+	char a = 'n';
+	char c = 'n';
 
 	f = fopen(rutaVotantes, "r");
 	if (f == NULL)
 	{
 		f = fopen(rutaVotantes, "w");
+		printf("\nCreando archivo votantes");
+
+		a = 's';
 	}
 
 	f = fopen(rutaAdmin, "r");
 	if (f == NULL)
 	{
+		printf("\nCreando archivo administrador");
+		printf("\nUsuario y contrase%ca por defecto: admin", 164);
+		system("PAUSE");
 		f = fopen(rutaAdmin, "w");
+		struct Administrador admin;
+
+		strcpy(admin.ususario, "admin");
+		strcpy(admin.contrasena, "admin");
+		fwrite(&admin, sizeof(admin), 1, f);
 	}
 
 	f = fopen(rutaCandidato, "r");
 	if (f == NULL)
 	{
+		printf("\nCreando archivo candidatos");
 		f = fopen(rutaCandidato, "w");
+
+		c = 's';
 	}
+
+	if (a == 's' || c == 's')
+	{
+		cod = 'a';
+	}
+
+	fclose(f);
+	return cod;
 }
 
 void admin(char *Votacion)
 {
 	int op;
-	FILE *fichero;
 
 	do
 	{
@@ -82,14 +148,10 @@ void admin(char *Votacion)
 		switch (op)
 		{
 		case 1:
-			printf("\n\t1)Registrar votante.");
 			registrarVotante();
 			break;
 
 		case 2:
-			printf("\n\t2)Ver lista nominal de votantes.");
-
-			struct Personas Datos;
 			votantesRegistrados();
 
 			break;
@@ -99,7 +161,6 @@ void admin(char *Votacion)
 			break;
 
 		case 4:
-			printf("\n\t4)Registrar candidato.");
 			registrarCandidato();
 			break;
 
@@ -204,6 +265,7 @@ void registrarVotante()
 			}
 		}
 	}
+	votantes.votoid = 0;
 	fclose(ficheroVotantes);
 }
 
@@ -220,7 +282,10 @@ int votantesRegistrados()
 		fread(&Datos, sizeof(Datos), 1, ficheroVotantes);
 	}
 	i--;
-	fseek(ficheroVotantes, 0, SEEK_SET);
+	//fseek(ficheroVotantes, 0, SEEK_SET);
+
+	fclose(ficheroVotantes);
+	ficheroVotantes = fopen(rutaVotantes, "r");
 
 	for (int x = 0; x < i; x++)
 	{
