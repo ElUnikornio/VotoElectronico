@@ -29,18 +29,19 @@ struct Candidato
 #define rutaCandidato "Candidato.txt"
 
 //  prototipos de funciones
-char inicioSesion();
-char comprobacionArchivos();
+int inicioSesion();
+void comprobacionArchivos();
 void admin(char *Votacion);
 void registrarVotante();
 int votantesRegistrados();
 void registrarCandidato();
 
 // Funciones
-char inicioSesion()
+int inicioSesion()
 {
 	struct Personas Datos;
-	char usuario[20], contra[16], val = 'n';
+	char usuario[20], contra[16];
+	int val = 0, x = 0;
 	FILE *fichero = fopen(rutaVotantes, "r");
 	//system("CLS");
 	fflush(stdin);
@@ -49,19 +50,27 @@ char inicioSesion()
 	printf("\nIngrese su contrase%ca: ", 164);
 	gets(contra);
 
-	while (!feof(fichero))
+	while (!feof(fichero) && x != -2)
 	{
 		fread(&Datos, sizeof(Datos), 1, fichero);
+		if (x != -2)
+			x++;
 		if (strcmp(Datos.nombre, usuario) == 0 && strcmp(Datos.contrasena, contra) == 0)
 		{
 			printf("\nNombre: %s", Datos.nombre);
 			printf("\nApellido Paterno: %s", Datos.apellidoP);
 			printf("\nApellido Materno: %s", Datos.apellidoM);
 			printf("\nTelefono: %s", Datos.contrasena);
-			val = 'v';
+			val = x;
+			x = -2;
 		}
 	}
-	if (val != 'v')
+
+	val--;
+
+	printf("%i", val);
+
+	if (x != -2)
 	{
 		struct Administrador Datos;
 		fichero = fopen(rutaAdmin, "r");
@@ -71,28 +80,30 @@ char inicioSesion()
 			if (strcmp(Datos.ususario, usuario) == 0 && strcmp(Datos.contrasena, contra) == 0)
 			{
 				printf("\ncorroto");
-				val = 'a';
+				val = 0;
 			}
 		}
 	}
-
-	return val;
+	printf("\n%i\t%i", x, val);
+	if (x == -1 || x)
+	{
+		return val;
+	}
+	else
+		return val;
 }
 
-char comprobacionArchivos()
+void comprobacionArchivos()
 {
 	FILE *f;
-	char cod = 'n';
-	char a = 'n';
-	char c = 'n';
+	int i = 0;
 
 	f = fopen(rutaVotantes, "r");
 	if (f == NULL)
 	{
 		f = fopen(rutaVotantes, "w");
 		printf("\nCreando archivo votantes");
-
-		a = 's';
+		i++;
 	}
 
 	f = fopen(rutaAdmin, "r");
@@ -107,6 +118,7 @@ char comprobacionArchivos()
 		strcpy(admin.ususario, "admin");
 		strcpy(admin.contrasena, "admin");
 		fwrite(&admin, sizeof(admin), 1, f);
+		i++;
 	}
 
 	f = fopen(rutaCandidato, "r");
@@ -114,17 +126,12 @@ char comprobacionArchivos()
 	{
 		printf("\nCreando archivo candidatos");
 		f = fopen(rutaCandidato, "w");
-
-		c = 's';
+		i++;
 	}
-
-	if (a == 's' || c == 's')
+	if (i > 0)
 	{
-		cod = 'a';
+		system("PAUSE");
 	}
-
-	fclose(f);
-	return cod;
 }
 
 void admin(char *Votacion)
@@ -244,8 +251,10 @@ void registrarVotante()
 
 			printf("Contrase%ca establecida con %cxito", 164, 130);
 			votantes.votoid = 0;
-			strcpy(votantes.nacionalidad, "MEX");
-			strcpy(votantes.antecedentes, "N");
+			votantes.nacionalidad[0] = 'M';
+			votantes.nacionalidad[1] = 'E';
+			votantes.nacionalidad[2] = 'X';
+			votantes.antecedentes = 'N';
 			fwrite(&votantes, sizeof(votantes), 1, ficheroVotantes);
 		}
 		else
@@ -320,8 +329,73 @@ void registrarCandidato()
 
 		candidato.votos = 0;
 
-		printf("%s %s", candidato.partido, candidato.nombre);
+		srand(getpid());
+		candidato.votoid = rand();
+
+		printf("%s %s %i", candidato.partido, candidato.nombre, candidato.votoid);
 		fwrite(&candidato, sizeof(candidato), 1, ficheroCandidatos);
 	}
 	fclose(ficheroCandidatos);
+}
+
+void cambiarClave()
+{
+	FILE *fichero;
+	int totalVotantes = 0, op;
+	struct Administrador Datos;
+
+	system("CLS");
+	printf("Seleccione una opci%cn", 162);
+	printf("\n\ta)Usuario");
+	printf("\n\tb)Administrador");
+
+	switch (getchar())
+	{
+	case 'a':
+		// system("CLS");
+		totalVotantes = votantesRegistrados();
+		fflush(stdin);
+		printf("\nSeleccione el n%cmero de su susuario\n\t: ", 163);
+		scanf("%i", &op);
+		if (op > 0 && op < totalVotantes)
+		{
+			struct Personas Datos;
+			fichero = fopen(rutaVotantes, "r+");
+			if (op == 1)
+			{
+				for (int i = 0; i < totalVotantes - 1; i++)
+				{
+					fread(&Datos, sizeof(Datos), 1, fichero);
+				}
+			}
+			printf("\nusuario: %s\n contra: %s ", Datos.nombre, Datos.contrasena);
+
+			fflush(stdin);
+			printf("ingrese una nueva contrase%ca", 164);
+			gets(Datos.contrasena);
+
+			fseek(fichero, (op - 1) * sizeof(Datos), SEEK_SET);
+			fwrite(&Datos, sizeof(Datos), 1, fichero);
+		}
+
+		break;
+	case 'b':
+		fichero = fopen(rutaAdmin, "r+");
+
+		fread(&Datos, sizeof(Datos), 1, fichero);
+		printf("\nusuario actual: %s\n contra actual: %s ", Datos.ususario, Datos.contrasena);
+
+		fflush(stdin);
+		printf("ingrese una nueva contrase%ca", 164);
+		gets(Datos.contrasena);
+
+		fseek(fichero, 0, SEEK_SET);
+		fwrite(&Datos, sizeof(Datos), 1, fichero);
+		break;
+
+	default:
+		break;
+	}
+
+	fclose(fichero);
 }

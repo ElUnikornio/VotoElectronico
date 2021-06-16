@@ -3,11 +3,16 @@
 #include <string.h>
 #include "lib.h"
 
+void voto();
+
 int main()
 {
-    char VotacionActiva = 'n', op = comprobacionArchivos();
-    /*
-    if (op == 'a')
+    char VotacionActiva = 'n';
+    comprobacionArchivos();
+    //admin(&VotacionActiva);
+    int op = inicioSesion();
+
+    if (op == 0)
     {
         admin(&VotacionActiva);
     }
@@ -15,19 +20,20 @@ int main()
     {
         do
         {
-            op = inicioSesion();
-            if (op == 'a')
+            if (op > 0)
             {
-                admin(&VotacionActiva);
+                void voto();
             }
-            else if (op == 'v')
+            else if (op == -1)
             {
-                printf("votante");
+                printf("El Usuario o crontrase%ca soin incorrectos", 164);
             }
             printf("\n quiere continuar s/n\n");
         } while (getchar() == 's');
     }
-*/
-    admin(&VotacionActiva);
+
+    // //admin(&VotacionActiva);
     return 0;
 }
+
+void voto();
