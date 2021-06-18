@@ -130,3 +130,34 @@ int anularVoto(int op, int id)
     fclose(fVot);
     fclose(fCan);
 }
+
+void elegirCandidato(int op)
+{
+    int i = 0;
+    FILE *fVot = fopen(rutaVotantes, "r+");
+    FILE *fCan = fopen(rutaCandidato, "r+");
+
+    struct Personas Datos;
+    struct Candidato cand;
+
+    fflush(stdin);
+    scanf("%i", &i);
+
+    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
+    fread(&Datos, sizeof(Datos), 1, fVot);
+
+    fseek(fCan, (i - 1) * sizeof(cand), SEEK_SET);
+    fread(&cand, sizeof(cand), 1, fCan);
+
+    Datos.votoid = cand.votoid;
+    cand.votos++;
+
+    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
+    fwrite(&Datos, sizeof(Datos), 1, fVot);
+
+    fseek(fCan, (i - 1) * sizeof(cand), SEEK_SET);
+    fwrite(&cand, sizeof(cand), 1, fCan);
+
+    fclose(fCan);
+    fclose(fVot);
+}
