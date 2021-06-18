@@ -9,14 +9,14 @@ void elegirCandidato(int op);
 
 int mai()
 {
-    elecciones(0);
+    resultadoElecciones(0);
 
     return 0;
 }
 
 int main()
 {
-    char VotacionActiva = 'n';
+    char VotacionActiva = 's';
     srand(getpid());
     comprobacionArchivos();
     //admin(&VotacionActiva);
@@ -25,19 +25,30 @@ int main()
 
     do
     {
+        system("CLS");
+        printf("\tSISTEMA DE VOTO ELECTRONICO\n\t---------------------------");
         op = inicioSesion();
         if (op > 0)
         {
-            printf("Usuario N %i", op);
-            id = haVotado(op);
-            if (id)
+            if (VotacionActiva == 's')
             {
-                anularVoto(op, id);
+                //printf("Usuario N %i", op);
+                id = haVotado(op);
+                if (id)
+                {
+                    anularVoto(op, id);
+                }
+                system("CLS");
+                printf("Selecciona una opcion");
+                resultadoElecciones(0);
+                printf("\n\t0) Anular voto\n\t :");
+                elegirCandidato(op);
             }
-            printf("Selecciona una opcion");
-            elecciones(0);
-            printf("\n\t: ");
-            elegirCandidato(op);
+            else
+            {
+                system("CLS");
+                printf("\nLas votaciones no se han habilitado");
+            }
         }
         else if (op == 0)
         {
@@ -118,35 +129,4 @@ int anularVoto(int op, int id)
 
     fclose(fVot);
     fclose(fCan);
-}
-
-void elegirCandidato(int op)
-{
-    int i = 0;
-    FILE *fVot = fopen(rutaVotantes, "r+");
-    FILE *fCan = fopen(rutaCandidato, "r+");
-
-    struct Personas Datos;
-    struct Candidato cand;
-
-    fflush(stdin);
-    scanf("%i", &i);
-
-    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
-    fread(&Datos, sizeof(Datos), 1, fVot);
-
-    fseek(fCan, (i - 1) * sizeof(cand), SEEK_SET);
-    fread(&cand, sizeof(cand), 1, fCan);
-
-    Datos.votoid = cand.votoid;
-    cand.votos++;
-
-    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
-    fwrite(&Datos, sizeof(Datos), 1, fVot);
-
-    fseek(fCan, (i - 1) * sizeof(cand), SEEK_SET);
-    fwrite(&cand, sizeof(cand), 1, fCan);
-
-    fclose(fCan);
-    fclose(fVot);
 }
