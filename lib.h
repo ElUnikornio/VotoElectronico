@@ -126,7 +126,7 @@ void comprobacionArchivos()
 	if (f == NULL)
 	{
 		printf("\nCreando archivo administrador");
-		printf("\nUsuario por defecto: admin \ncontrase%ca por defecto: admin\n", 164);
+		printf("\nUsuario por defecto: admin \ncontrase%ca por defecto: admin\n\n", 164);
 		f = fopen(rutaAdmin, "w");
 		struct Administrador admin;
 
