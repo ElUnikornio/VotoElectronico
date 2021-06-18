@@ -7,16 +7,14 @@ int haVotado(int op);
 int anularVoto(int op, int id);
 void elegirCandidato(int op);
 
-int mai()
-{
-    resultadoElecciones(0);
-
-    return 0;
-}
-
 int main()
 {
-    char VotacionActiva = 's';
+    FILE *f = fopen(rutaAdmin, "r");
+    struct Administrador ad;
+    fread(&ad, sizeof(ad), 1, f);
+
+    char VotacionActiva = ad.votacion;
+    fclose(f);
     srand(getpid());
     comprobacionArchivos();
     //admin(&VotacionActiva);
@@ -60,7 +58,7 @@ int main()
             printf("No se encontro");
         }
 
-        printf("\nQuiere continuar s/n\n\t:");
+        printf("\nQuiere ingresar un nuevo usuario s/n\n\t:");
         fflush(stdin);
     } while (getchar() == 's');
 

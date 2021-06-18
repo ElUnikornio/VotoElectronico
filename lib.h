@@ -13,7 +13,8 @@ struct Personas
 struct Administrador
 {
 	char ususario[20],
-		contrasena[16];
+		contrasena[16],
+		votacion;
 };
 
 struct Candidato
@@ -83,7 +84,6 @@ int inicioSesion()
 		{
 			if (strcmp(Datos.ususario, usuario) == 0 && strcmp(Datos.contrasena, contra) == 0)
 			{
-				// printf("\ncorroto");
 				val = 0;
 			}
 			else
@@ -94,12 +94,6 @@ int inicioSesion()
 			fread(&Datos, sizeof(Datos), 1, fichero);
 		}
 	}
-	// printf("\n%i\t%i", x, val);
-	// if (x == -1 || x)
-	// {
-	// 	return val;
-	// }
-	// else
 	return val;
 }
 
@@ -113,7 +107,7 @@ void comprobacionArchivos()
 	{
 		f = fopen(rutaVotantes, "w");
 		system("CLS");
-		printf("\nCreando archivo votantes");
+		printf("\nCreando archivo votantes\n");
 		fclose(f);
 
 		i++;
@@ -122,7 +116,7 @@ void comprobacionArchivos()
 	f = fopen(rutaCandidato, "r");
 	if (f == NULL)
 	{
-		printf("\nCreando archivo candidatos");
+		printf("\nCreando archivo candidatos\n");
 		f = fopen(rutaCandidato, "w");
 		fclose(f);
 		i++;
@@ -132,12 +126,13 @@ void comprobacionArchivos()
 	if (f == NULL)
 	{
 		printf("\nCreando archivo administrador");
-		printf("\nUsuario y contrase%ca por defecto: admin admin\n", 164);
+		printf("\nUsuario por defecto: admin \ncontrase%ca por defecto: admin\n", 164);
 		f = fopen(rutaAdmin, "w");
 		struct Administrador admin;
 
 		strcpy(admin.ususario, "admin");
 		strcpy(admin.contrasena, "admin");
+		admin.votacion = 'n';
 		fwrite(&admin, sizeof(admin), 1, f);
 		fclose(f);
 	}
@@ -149,6 +144,8 @@ void comprobacionArchivos()
 
 void admin(char *Votacion)
 {
+	struct Administrador ad;
+	FILE *f;
 	int op;
 
 	do
@@ -172,9 +169,24 @@ void admin(char *Votacion)
 			break;
 
 		case 2:
-			votantesRegistrados(1);
-			printf("\n");
-			system("PAUSE");
+			f = fopen(rutaVotantes, "r");
+			if (feof(f))
+			{
+				fclose(f);
+				system("color 04");
+				system("CLS");
+				printf("No hay votantes registrados");
+
+				system("color 0F");
+			}
+			else
+			{
+				fclose(f);
+				votantesRegistrados(1);
+				printf("\n");
+				system("PAUSE");
+			}
+
 			break;
 
 		case 3:
@@ -194,14 +206,30 @@ void admin(char *Votacion)
 			system("CLS");
 			printf("Las votaciones se han abierto.\n");
 			system("PAUSE");
+
 			*Votacion = 's';
+			f = fopen(rutaAdmin, "r+");
+			fread(&ad, sizeof(ad), 1, f);
+			ad.votacion = 's';
+
+			fseek(f, 0, SEEK_SET);
+			fwrite(&ad, sizeof(ad), 1, f);
+			fclose(f);
 			break;
 
 		case 6:
 			system("CLS");
 			printf("Las votaciones se han cerrado.\n");
 			system("PAUSE");
+
 			*Votacion = 'n';
+			f = fopen(rutaAdmin, "r+");
+			fread(&ad, sizeof(ad), 1, f);
+			ad.votacion = 'n';
+
+			fseek(f, 0, SEEK_SET);
+			fwrite(&ad, sizeof(ad), 1, f);
+			fclose(f);
 			break;
 
 		case 7:
@@ -209,7 +237,7 @@ void admin(char *Votacion)
 			break;
 
 		case 8:
-			printf("\nAdios.\n");
+			printf("\nAdios administrador.\n");
 			break;
 
 		default:
@@ -258,18 +286,23 @@ void registrarVotante()
 		{
 			system("CLS");
 			//verde
+			system("color 02");
+
 			printf("\nCumple con los requisitos para votar\n");
 			system("PAUSE");
+			system("color 0F");
 
 			do
 			{
 				if (strcmp(contra, "n") != 0)
 				{
 					system("CLS");
-					//rojo
+					system("color 04");
+
 					printf("\nLa contrase%ca no coinside, reintente\n", 164);
 					system("PAUSE");
-					//normal
+
+					system("color 0F");
 				}
 
 				fflush(stdin);
@@ -282,9 +315,12 @@ void registrarVotante()
 			} while (strcmp(contra, votantes.contrasena) != 0);
 
 			system("CLS");
-			//verde
+			system("color 02");
+
 			printf("Contrase%ca establecida con %cxito\n", 164, 130);
 			system("PAUSE");
+			system("color 0F");
+
 			votantes.votoid = 0;
 			votantes.nacionalidad[0] = 'M';
 			votantes.nacionalidad[1] = 'E';
@@ -294,7 +330,9 @@ void registrarVotante()
 		}
 		else
 		{
+			system("CLS");
 			//rojo
+			system("color 04");
 			if (strcmp(votantes.nacionalidad, "MEX") != 0 && strcmp(votantes.nacionalidad, "mex") != 0)
 			{
 				printf("La nacionalidad debe de ser MEX para poder votar\n");
@@ -304,6 +342,7 @@ void registrarVotante()
 
 			if (votantes.edad < 18)
 			{
+
 				printf("El votante debe de ser mayor de edad\n");
 			}
 
@@ -312,6 +351,8 @@ void registrarVotante()
 				printf("No puede votar si tiene antecedentes penales\n");
 			}
 			//nornal
+			system("PAUSE");
+			system("color 0F");
 		}
 	}
 	fclose(ficheroVotantes);
@@ -400,10 +441,10 @@ void cambiarClave()
 			fread(&Datos, sizeof(Datos), 1, fichero);
 
 			system("CLS");
-			printf("\nusuario actual: %s\n contrase%ca actual: %s ", Datos.nombre, 164, Datos.contrasena);
+			printf("\nusuario actual: %s\ncontrase%ca actual: %s", Datos.nombre, 164, Datos.contrasena);
 
 			fflush(stdin);
-			printf("ingrese una nueva contrase%ca", 164);
+			printf("\ningrese una nueva contrase%ca: ", 164);
 			gets(Datos.contrasena);
 
 			fseek(fichero, (op - 1) * sizeof(Datos), SEEK_SET);
@@ -445,20 +486,20 @@ void resultadoElecciones(int mostrar)
 	FILE *fCan = fopen(rutaCandidato, "r");
 	struct Candidato cand;
 	int c = 1;
-	int totalvot = totalVotos();
+	//int totalvot = totalVotos();
 	fread(&cand, sizeof(cand), 1, fCan);
 	//system("CLS");
 	//printf("Resultado de las elecciones");
 	while (!feof(fCan))
 	{
-		printf("\n\t%i) %s \t %s\t\t", c, cand.partido, cand.nombre);
+		printf("\n\t%i) %s \t %s\t\t\t", c, cand.partido, cand.nombre);
 		if (mostrar)
 		{
 			for (int i = 0; i < cand.votos; i++)
 			{
 				printf("#");
 			}
-			printf("\t\t %i (%.2f %c)", cand.votos, (float)((float)cand.votos * 100 / (float)totalvot), 37);
+			printf("\t\t %i votos", cand.votos /*, ((float)cand.votos * 100 / (float)totalvot), 37*/);
 		}
 		c++;
 		fread(&cand, sizeof(cand), 1, fCan);
