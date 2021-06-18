@@ -33,8 +33,10 @@ int inicioSesion();
 void comprobacionArchivos();
 void admin(char *Votacion);
 void registrarVotante();
-int votantesRegistrados();
+int votantesRegistrados(int mostrar);
 void registrarCandidato();
+void cambiarClave();
+void elecciones();
 
 // Funciones
 int inicioSesion()
@@ -62,6 +64,8 @@ int inicioSesion()
 			printf("\nApellido Paterno: %s", Datos.apellidoP);
 			printf("\nApellido Materno: %s", Datos.apellidoM);
 			printf("\nTelefono: %s", Datos.contrasena);
+			printf("\nVotoID: %i", Datos.votoid);
+
 			val = x;
 			x = -2;
 		}
@@ -79,13 +83,18 @@ int inicioSesion()
 		{
 			if (strcmp(Datos.ususario, usuario) == 0 && strcmp(Datos.contrasena, contra) == 0)
 			{
-				printf("\ncorroto");
+				// printf("\ncorroto");
 				val = 0;
 			}
+			else
+			{
+				val = -1;
+			}
+
 			fread(&Datos, sizeof(Datos), 1, fichero);
 		}
 	}
-	printf("\n%i\t%i", x, val);
+	// printf("\n%i\t%i", x, val);
 	// if (x == -1 || x)
 	// {
 	// 	return val;
@@ -162,12 +171,14 @@ void admin(char *Votacion)
 			break;
 
 		case 2:
-			votantesRegistrados();
+			votantesRegistrados(1);
 
 			break;
 
 		case 3:
 			printf("\n\t3)Ver resultados de las elecciones.");
+			elecciones(1);
+
 			break;
 
 		case 4:
@@ -284,7 +295,7 @@ void registrarVotante()
 	fclose(ficheroVotantes);
 }
 
-int votantesRegistrados()
+int votantesRegistrados(int mostrar)
 {
 	FILE *ficheroVotantes = fopen(rutaVotantes, "r");
 	int i = 0;
@@ -294,10 +305,13 @@ int votantesRegistrados()
 	while (!feof(ficheroVotantes))
 	{
 		//printf("\n%i\n", i);
-		printf("\n%i) %s  ", i + 1, Datos.nombre);
-		printf("%s  ", Datos.apellidoP);
-		printf("%s ", Datos.apellidoM);
-		printf("%i ", Datos.votoid);
+		if (mostrar)
+		{
+			printf("\n%i) %s  ", i + 1, Datos.nombre);
+			printf("%s  ", Datos.apellidoP);
+			printf("%s ", Datos.apellidoM);
+			printf("%i ", Datos.votoid);
+		}
 		fread(&Datos, sizeof(Datos), 1, ficheroVotantes);
 		i++;
 	}
@@ -326,7 +340,6 @@ void registrarCandidato()
 
 		candidato.votos = 0;
 
-		srand(getpid());
 		candidato.votoid = rand();
 
 		printf("%s %s %i", candidato.partido, candidato.nombre, candidato.votoid);
@@ -349,23 +362,22 @@ void cambiarClave()
 	switch (getchar())
 	{
 	case 'a':
+
 		// system("CLS");
-		totalVotantes = votantesRegistrados();
+		printf("\nUSUARIOS REGISTRADOS\n ");
+		totalVotantes = votantesRegistrados(1);
 		fflush(stdin);
-		printf("\nSeleccione el n%cmero de su susuario\n\t: ", 163);
+		printf("\nSeleccione un n%cmero de usuario", 163);
 		scanf("%i", &op);
-		if (op > 0 && op < totalVotantes)
+
+		if (op > 0 && op <= totalVotantes)
 		{
 			struct Personas Datos;
 			fichero = fopen(rutaVotantes, "r+");
 
-			if (op == 1)
-			{
-				for (int i = 0; i < totalVotantes - 1; i++)
-				{
-					fread(&Datos, sizeof(Datos), 1, fichero);
-				}
-			}
+			fseek(fichero, (op - 1) * sizeof(Datos), SEEK_SET);
+			fread(&Datos, sizeof(Datos), 1, fichero);
+
 			printf("\nusuario: %s\n contra: %s ", Datos.nombre, Datos.contrasena);
 
 			fflush(stdin);
@@ -396,4 +408,28 @@ void cambiarClave()
 	}
 
 	fclose(fichero);
+}
+
+void elecciones(int mostrar)
+{
+
+	FILE *fCan = fopen(rutaCandidato, "r");
+	struct Candidato cand;
+	int c = 1;
+	fread(&cand, sizeof(cand), 1, fCan);
+	while (!feof(fCan))
+	{
+		printf("\n%i) %s \t %s\t", c, cand.partido, cand.nombre);
+		if (mostrar)
+		{
+			for (int i = 0; i < cand.votos; i++)
+			{
+				printf("#");
+			}
+			printf("\t %i", cand.votos);
+		}
+		c++;
+		fread(&cand, sizeof(cand), 1, fCan);
+	}
+	fclose(fCan);
 }

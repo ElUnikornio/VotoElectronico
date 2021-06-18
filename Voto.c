@@ -3,14 +3,25 @@
 #include <string.h>
 #include "lib.h"
 
-void voto();
+int haVotado(int op);
+int anularVoto(int op, int id);
+void elegirCandidato(int op);
+
+int mai()
+{
+    elecciones(0);
+
+    return 0;
+}
 
 int main()
 {
     char VotacionActiva = 'n';
+    srand(getpid());
     comprobacionArchivos();
     //admin(&VotacionActiva);
-    int op;
+    int op, id;
+    //inicializarVotos();
 
     do
     {
@@ -18,7 +29,15 @@ int main()
         if (op > 0)
         {
             printf("Usuario N %i", op);
-            voto(op);
+            id = haVotado(op);
+            if (id)
+            {
+                anularVoto(op, id);
+            }
+            printf("Selecciona una opcion");
+            elecciones(0);
+            printf("\n\t: ");
+            elegirCandidato(op);
         }
         else if (op == 0)
         {
@@ -30,7 +49,7 @@ int main()
             printf("No se encontro");
         }
 
-        printf("\nQuiere continuar s/n");
+        printf("\nQuiere continuar s/n\n\t:");
         fflush(stdin);
     } while (getchar() == 's');
 
@@ -38,34 +57,96 @@ int main()
     return 0;
 }
 
-void voto(int op)
+int haVotado(int op)
 {
-    FILE *ficheroVot = fopen(rutaVotantes, "r+");
-    FILE *ficheroCan = fopen(rutaCandidato, "r");
-    int i = 0;
+    int id = 0;
+    FILE *fichero = fopen(rutaVotantes, "r");
+    struct Personas Datos;
 
-    struct Personas votante;
-    struct Candidato candidato;
+    fseek(fichero, (op - 1) * sizeof(Datos), SEEK_SET);
+    fread(&Datos, sizeof(Datos), 1, fichero);
 
-    printf("\nSeleccione una opcion\n");
-    fread(&candidato, sizeof(candidato), 1, ficheroCan);
-    while (!feof(ficheroCan))
+    if (Datos.votoid > 0)
     {
-        //printf("\n%i\n", i);
-        printf("\t%i) %s  \n", i + 1, candidato.nombre);
-        i++;
-        fread(&candidato, sizeof(candidato), 1, ficheroCan);
+        id = Datos.votoid;
     }
-    /*
+
+    fclose(fichero);
+
+    return id;
+}
+
+int anularVoto(int op, int id)
+{
+    int pos = -1, c = 0;
+    FILE *fVot = fopen(rutaVotantes, "r+");
+    FILE *fCan = fopen(rutaCandidato, "r+");
+
+    struct Personas Datos;
+    struct Candidato cand;
+
+    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
+    fread(&Datos, sizeof(Datos), 1, fVot);
+
+    fread(&cand, sizeof(cand), 1, fCan);
+    while (!feof(fCan))
+    {
+        if (Datos.votoid == cand.votoid)
+        {
+            pos = c;
+        }
+
+        if (pos == -1)
+            c++;
+
+        fread(&cand, sizeof(cand), 1, fCan);
+    }
+
+    if (pos != -1)
+    {
+        fseek(fCan, (pos) * sizeof(cand), SEEK_SET);
+        fread(&cand, sizeof(cand), 1, fCan);
+        cand.votos--;
+        fseek(fCan, (pos) * sizeof(cand), SEEK_SET);
+        fwrite(&cand, sizeof(cand), 1, fCan);
+        printf("\nYa voto\n");
+    }
+
+    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
+    Datos.votoid = 0;
+    fwrite(&Datos, sizeof(Datos), 1, fVot);
+
+    fclose(fVot);
+    fclose(fCan);
+}
+
+void elegirCandidato(int op)
+{
+    int i = 0;
+    FILE *fVot = fopen(rutaVotantes, "r+");
+    FILE *fCan = fopen(rutaCandidato, "r+");
+
+    struct Personas Datos;
+    struct Candidato cand;
+
+    fflush(stdin);
     scanf("%i", &i);
-    fseek(ficheroCan, (i - 1) * sizeof(candidato), SEEK_SET);
-    fread(&candidato, sizeof(candidato), 1, ficheroCan);
 
-    fseek(ficheroVot, (op) * sizeof(votante), SEEK_SET);
-    fread(&votante, sizeof(candidato), 1, ficheroVot);
-    votante.votoid = candidato.votoid;
-    fseek(ficheroVot, (op) * sizeof(votante), SEEK_SET);
-    //fwrite(&votante, sizeof(votante), 1, ficheroVot);
+    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
+    fread(&Datos, sizeof(Datos), 1, fVot);
 
-    printf("%s\t%i\t%i", votante.nombre, votante.votoid, candidato.votoid);*/
+    fseek(fCan, (i - 1) * sizeof(cand), SEEK_SET);
+    fread(&cand, sizeof(cand), 1, fCan);
+
+    Datos.votoid = cand.votoid;
+    cand.votos++;
+
+    fseek(fVot, (op - 1) * sizeof(Datos), SEEK_SET);
+    fwrite(&Datos, sizeof(Datos), 1, fVot);
+
+    fseek(fCan, (i - 1) * sizeof(cand), SEEK_SET);
+    fwrite(&cand, sizeof(cand), 1, fCan);
+
+    fclose(fCan);
+    fclose(fVot);
 }
