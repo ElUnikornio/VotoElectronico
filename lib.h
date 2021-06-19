@@ -37,8 +37,7 @@ void registrarVotante();
 int votantesRegistrados(int mostrar);
 void registrarCandidato();
 void cambiarClave();
-void resultadoElecciones();
-int totalVotos();
+void resultadoElecciones(int mostrar);
 
 // Funciones
 int inicioSesion()
@@ -486,7 +485,6 @@ void resultadoElecciones(int mostrar)
 	FILE *fCan = fopen(rutaCandidato, "r");
 	struct Candidato cand;
 	int c = 1;
-	//int totalvot = totalVotos();
 	fread(&cand, sizeof(cand), 1, fCan);
 	//system("CLS");
 	//printf("Resultado de las elecciones");
@@ -506,27 +504,4 @@ void resultadoElecciones(int mostrar)
 	}
 	//printf("\n");
 	fclose(fCan);
-}
-
-int totalVotos()
-{
-	int votos = 0;
-	int op = votantesRegistrados(0);
-
-	FILE *fichero = fopen(rutaVotantes, "r");
-	struct Personas Datos;
-
-	for (int i = 0; i < op; i++)
-	{
-		fread(&Datos, sizeof(Datos), 1, fichero);
-		if (Datos.votoid > 0)
-		{
-			votos++;
-		}
-	}
-
-	fclose(fichero);
-	//printf("%i", votos);
-
-	return votos;
 }

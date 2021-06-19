@@ -4,7 +4,7 @@
 #include "lib.h"
 
 int haVotado(int op);
-int anularVoto(int op, int id);
+int anularVoto(int op);
 void elegirCandidato(int op);
 
 int main()
@@ -34,7 +34,7 @@ int main()
                 id = haVotado(op);
                 if (id)
                 {
-                    anularVoto(op, id);
+                    anularVoto(op);
                 }
                 system("CLS");
                 printf("Selecciona una opcion");
@@ -85,7 +85,7 @@ int haVotado(int op)
     return id;
 }
 
-int anularVoto(int op, int id)
+int anularVoto(int op)
 {
     int pos = -1, c = 0;
     FILE *fVot = fopen(rutaVotantes, "r+");
